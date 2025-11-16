@@ -102,10 +102,9 @@ export default function Home() {
   };
 
   const handleOpenFrista = () => {
-    // This will attempt to open the application registered with the "frista://" protocol.
-    // The user's local machine must be configured to handle this custom URL scheme.
-    // The NIK is passed as a query parameter for demonstration.
-    window.location.href = `frista://open?patientId=${verifiedPatient?.nik || 'test'}`;
+    const fristaUrl = `frista://open?patientId=${verifiedPatient?.nik || 'test'}`;
+    console.log(`Mencoba membuka: ${fristaUrl}`);
+    window.location.href = fristaUrl;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
