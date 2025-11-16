@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -21,9 +22,12 @@ import {
   XCircle,
   ScanBarcode,
   Keyboard,
+  User,
+  FileText,
 } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { VoicePrompt } from "@/components/voice-prompt";
+import { patients, Patient } from "@/data/patients";
 
 type Step = "idle" | "input" | "verifying" | "success" | "error";
 type VerificationSubStep = "login" | "fingerprint" | "print";
@@ -53,6 +57,7 @@ export default function Home() {
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [currentDate, setCurrentDate] = useState("");
+  const [verifiedPatient, setVerifiedPatient] = useState<Patient | null>(null);
 
   useEffect(() => {
     setCurrentDate(
@@ -75,6 +80,7 @@ export default function Home() {
       print: "pending",
     });
     setErrorMessage("");
+    setVerifiedPatient(null);
   }, []);
 
   useEffect(() => {
@@ -84,11 +90,11 @@ export default function Home() {
         "Silakan masukkan nomor BPJS atau nomor booking Anda pada kolom yang tersedia. Anda dapat menggunakan keyboard atau pemindai barcode.",
       verifying: "Sedang memproses. Mohon tunggu.",
       success:
-        "Verifikasi berhasil. Tiket Anda akan segera dicetak. Silakan ambil tiket Anda.",
+        `Verifikasi untuk pasien ${verifiedPatient?.name} berhasil. Tiket Anda akan segera dicetak. Silakan ambil tiket Anda.`,
       error: `Terjadi kesalahan. ${errorMessage} Silakan coba lagi.`,
     };
     setVoiceInstruction(instructions[step]);
-  }, [step, errorMessage]);
+  }, [step, errorMessage, verifiedPatient]);
 
   const handleStart = () => {
     setStep("input");
@@ -102,12 +108,19 @@ export default function Home() {
       return;
     }
 
-    if (bpjsNumber === "123" || bookingNumber === "123") {
-      setErrorMessage("Nomor tidak valid.");
+    const foundPatient = patients.find(
+      (p) =>
+        (bpjsNumber && p.bpjsNumber === bpjsNumber) ||
+        (bookingNumber && p.bookingNumber === bookingNumber)
+    );
+
+    if (!foundPatient) {
+      setErrorMessage("Data pasien tidak ditemukan.");
       setStep("error");
       return;
     }
-
+    
+    setVerifiedPatient(foundPatient);
     setStep("verifying");
   };
 
@@ -164,11 +177,11 @@ export default function Home() {
                       );
                     }, 1000)
                   );
-                }, 3000)
+                }, 2000)
               );
             }, 1000)
           );
-        }, 2000)
+        }, 1500)
       );
     };
 
@@ -226,7 +239,7 @@ export default function Home() {
                   </Label>
                   <Input
                     id="bpjs-number"
-                    placeholder="Contoh: 0001234567890"
+                    placeholder="Contoh: 000111222333"
                     className="h-14 text-xl"
                     value={bpjsNumber}
                     onChange={(e) => setBpjsNumber(e.target.value)}
@@ -245,7 +258,7 @@ export default function Home() {
                   </Label>
                   <Input
                     id="booking-number"
-                    placeholder="Contoh: A1B2C3D4"
+                    placeholder="Contoh: BOOK001"
                     className="h-14 text-xl"
                     value={bookingNumber}
                     onChange={(e) => setBookingNumber(e.target.value)}
@@ -309,18 +322,42 @@ export default function Home() {
 
       case "success":
         return (
-          <Card className="w-full max-w-lg text-center shadow-xl">
+          <Card className="w-full max-w-2xl text-center shadow-xl">
             <CardHeader>
               <CheckCircle2 className="h-24 w-24 text-green-500 mx-auto mb-4" />
               <CardTitle className="text-3xl font-headline">
                 Verifikasi Berhasil!
               </CardTitle>
-              <CardDescription>
-                Tiket Anda akan segera dicetak. Silakan ambil tiket Anda di
-                printer.
+              <CardDescription className="text-lg">
+                Data pasien cocok dan tiket akan segera dicetak.
               </CardDescription>
             </CardHeader>
-            <CardFooter className="flex-col gap-4">
+            {verifiedPatient && (
+               <CardContent className="text-left space-y-4 text-lg bg-secondary/50 p-6 rounded-lg">
+                 <div className="flex items-center">
+                   <User className="h-6 w-6 mr-4 text-primary" />
+                   <div>
+                     <p className="font-semibold text-xl">{verifiedPatient.name}</p>
+                     <p className="text-muted-foreground">Nama Pasien</p>
+                   </div>
+                 </div>
+                 <div className="flex items-center">
+                   <FileText className="h-6 w-6 mr-4 text-primary" />
+                   <div>
+                     <p className="font-semibold">{verifiedPatient.bpjsNumber}</p>
+                     <p className="text-muted-foreground">No. BPJS</p>
+                   </div>
+                 </div>
+                 <div className="flex items-center">
+                   <FileText className="h-6 w-6 mr-4 text-primary" />
+                   <div>
+                     <p className="font-semibold">{verifiedPatient.nik}</p>
+                     <p className="text-muted-foreground">NIK</p>
+                   </div>
+                 </div>
+               </CardContent>
+            )}
+            <CardFooter className="flex-col gap-4 pt-6">
               <Button
                 size="lg"
                 className="w-full h-16 text-xl bg-green-600 hover:bg-green-700"
