@@ -24,6 +24,7 @@ import {
   Keyboard,
   User,
   FileText,
+  ExternalLink,
 } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { VoicePrompt } from "@/components/voice-prompt";
@@ -98,6 +99,12 @@ export default function Home() {
 
   const handleStart = () => {
     setStep("input");
+  };
+
+  const handleOpenFrista = () => {
+    // This will attempt to open the application registered with the "frista://" protocol.
+    // The user's local machine must be configured to handle this custom URL scheme.
+    window.location.href = `frista://open?patientId=${verifiedPatient?.nik}`;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -357,7 +364,7 @@ export default function Home() {
                  </div>
                </CardContent>
             )}
-            <CardFooter className="flex-col gap-4 pt-6">
+            <CardFooter className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6">
               <Button
                 size="lg"
                 className="w-full h-16 text-xl bg-green-600 hover:bg-green-700"
@@ -365,10 +372,18 @@ export default function Home() {
                 <Printer className="mr-2 h-6 w-6" /> Cetak Ulang Tiket
               </Button>
               <Button
+                onClick={handleOpenFrista}
+                size="lg"
+                variant="secondary"
+                className="w-full h-16 text-xl"
+              >
+                <ExternalLink className="mr-2 h-6 w-6" /> Buka Aplikasi Frista
+              </Button>
+              <Button
                 onClick={handleStartOver}
                 size="lg"
                 variant="outline"
-                className="w-full h-16 text-xl"
+                className="w-full h-16 text-xl md:col-span-2"
               >
                 Mulai dari Awal
               </Button>
@@ -423,3 +438,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
